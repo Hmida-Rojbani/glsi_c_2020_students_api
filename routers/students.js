@@ -32,4 +32,13 @@ router.post(['','/'], async (req,res) =>{
 });
 
 
+
+router.delete('/id/:id',validateObjectId, async (req,res) =>{
+    let student = await Student.findByIdAndRemove(req.params.id);
+    if(!student)
+        return res.status(404).send('Student with given ID is not found.');
+    res.send(student);
+});
+
+
 module.exports = router;
