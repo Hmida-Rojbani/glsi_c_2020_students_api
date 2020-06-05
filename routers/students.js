@@ -10,9 +10,17 @@ router.get(['','/'], async (req,res) =>{
 });
 
 router.post(['','/'], async (req,res) =>{
+    let body_errors = Student.student_valid_data(req.body);
+    if(body_errors)
+        return res.status(400).send(body_errors.details[0].message);
     let student = new Student(_.pick(req.body,['name','email','age']));
-    student = await student.save();
-    res.status(201).send(student);
+    try{
+        student = await student.save();
+        res.status(201).send(student);
+    }catch(err){
+        return res.status(400).send(`DB error : ${err.message}`);
+    }
+    
 });
 
 
