@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Student = require('../models/student');
+const validateObjectId = require('../middlewares/validateObjectId');
 const _ = require('lodash');
 
 router.get(['','/'], async (req,res) =>{
@@ -7,6 +8,13 @@ router.get(['','/'], async (req,res) =>{
     if(students.length == 0)
         return res.status(204).send();
     res.send(students);
+});
+
+router.get('/id/:id',validateObjectId, async (req,res) =>{
+    let student = await Student.findById(req.params.id);
+    if(!student)
+        return res.status(404).send('Student with given ID is not found.');
+    res.send(student);
 });
 
 router.post(['','/'], async (req,res) =>{
