@@ -11,6 +11,13 @@ router.get(['','/'], async (req,res) =>{
     res.send(students);
 });
 
+router.get('/details', async (req,res) =>{
+    let students = await Student.find().populate('class_room._id');
+    if(students.length == 0)
+        return res.status(204).send();
+    res.send(students);
+});
+
 router.get('/id/:id',validateObjectId, async (req,res) =>{
     let student = await Student.findById(req.params.id);
     if(!student)
@@ -46,6 +53,10 @@ router.delete('/id/:id',validateObjectId, async (req,res) =>{
     let student = await Student.findByIdAndRemove(req.params.id);
     if(!student)
         return res.status(404).send('Student with given ID is not found.');
+    let class_room = await ClassRoom.findById(student.class_room._id);
+    class_room.nb_student -=1;
+    class_room.students=class_room.students.filter(st=> st != student._id.toString());
+    await class_room.save();
     res.send(student);
 });
 
@@ -56,8 +67,22 @@ router.put('/id/:id',validateObjectId, async (req,res) =>{
     let body_errors = Student.student_valid_data_update(req.body);
     if(body_errors)
         return res.status(400).send(body_errors.details[0].message);
+    let old_class_room_id = student.class_room._id;
     student = _.merge(student,req.body);
     try{
+        
+        if(req.body.class_room._id)
+            {
+                let old_class_room = await ClassRoom.findById(old_class_room_id);
+                old_class_room.nb_student -=1;
+                old_class_room.students=old_class_room.students.filter(st=> st != student._id.toString());
+                await old_class_room.save();
+                let class_room = await ClassRoom.findById(student.class_room._id);
+                class_room.nb_student += 1;
+                class_room.students.push(student._id);
+                await class_room.save();
+                student.class_room.name = class_room.name;
+            }
         student = await student.save();
         res.status(200).send(student);
     }catch(err){
