@@ -29,7 +29,7 @@ router.post(['','/'], async (req,res) =>{
     let body_errors = Student.student_valid_data(req.body);
     if(body_errors)
         return res.status(400).send(body_errors.details[0].message);
-    let student = new Student(_.pick(req.body,['name','email','age','class_room']));
+    let student = new Student(_.pick(req.body,['name','email','age',,'extra_price','class_room']));
     //update to use class_room model
     let class_room = await ClassRoom.findById(student.class_room._id);
     if(!class_room)
